@@ -22,8 +22,8 @@ router.post('/sign-up', async (req, res, next) => {
         })
 
         return res.status(201).json({message: "회원가입이 완료되었습니다."})
-      } catch (error) {
-        return res.status(500).json({ errorMessage: "카테고리 등록 중 오류가 발생했습니다.", error: error.message });
+      } catch (err) {
+        next(err);
       }
     })
     
