@@ -61,8 +61,28 @@ router.post('/sign-up', async (req, res, next) => {
 router.post('/sign-in', async (req, res, next) => {
     const {nickname, password} = req.body
     try {
-        const user = await prisma.users.findFirst({where: {nickname}});
-        // 에러메세지 필요
+      if (!nickname || !password) { // 데이터형식의 오류
+        const err = new Error('데이터 형식이 올바르지 않습니다.');
+        err.status = 400;
+        throw err;
+      }
+      const user = await prisma.users.findFirst({where: {nickname}});
+
+      if (!user) {  // 존재하지 않는 닉네임
+        const err = new Error('존재하지 않는 닉네임 입니다.');
+        err.status = 401;
+        throw err;
+      }
+
+      const userPassword = await bcrypt.compare(password, user.password);
+
+      if (!userPassword) {  // 존재하지 않는 패스원드
+        const err = new Error('비밀번호가 일치하지 않습니다.');
+        err.status = 401;
+        throw err;
+      }
+
+
 
         const token = jwt.sign(
             { userId: user.userId},
@@ -72,8 +92,8 @@ router.post('/sign-in', async (req, res, next) => {
             res.cookie('authorization', `Bearer ${token}`);
             return res.status(201).json({message: "로그인에 성공하였습니다."})
 
-      } catch (error) {
-        return res.status(500).json({ errorMessage: "카테고리 등록 중 오류가 발생했습니다.", error: error.message });
+      } catch (err) {
+        next(err);
       }
     });
     

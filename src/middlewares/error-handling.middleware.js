@@ -3,5 +3,5 @@ export default function (err, req, res, next) {
     console.error(err);
   
     // 클라이언트에 에러 메시지 응답
-    res.status(err.status).json({ errorMessage: err.message });
+    res.status(err.status).json({ Message: err.message });
   };
