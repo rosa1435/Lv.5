@@ -4,11 +4,13 @@ import menuRouter from "./routes/menus.router.js";
 import UsersRouter from "./routes/users.router.js";
 import LogMiddleware from './middlewares/log.middleware.js';
 import ErrorHandlingMiddleware from "./middlewares/error-handling.middleware.js";
+import cookieParser from 'cookie-parser';
 
 const app = express();
 const PORT = 3000;
 
 app.use(LogMiddleware);
+app.use(cookieParser());
 app.use(express.json());
 
 
