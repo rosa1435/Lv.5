@@ -9,8 +9,37 @@ const router = express.Router();
 router.post('/sign-up', async (req, res, next) => {
     const {nickname, password, userType} = req.body
     try {
-        // 데이터 형식, 닉네임 형식, 비밀번호 형식, 중복된 닉네임 에러메세지 필요
+      if (!nickname || !password) { // 데이터형식의 오류
+        const err = new Error('데이터 형식이 올바르지 않습니다.');
+        err.status = 400;
+        throw err;
+      }
+    
 
+        if (!/^[a-zA-Z0-9]{3,15}$/.test(nickname)) { // 닉네임 형식 오류
+          const err = new Error('닉네임 형식에 일치하지 않습니다.');
+          err.status = 400;
+          throw err;
+        }
+
+        if (password.length < 8 || password.length > 20 || password.includes(nickname)) { // 비밀번호 형식 오류
+          const err = new Error('비밀번호 형식에 일치하지 않습니다.');
+          err.status = 400;
+          throw err;
+        }
+      
+        const findNickname = await prisma.users.findFirst({
+          where: {
+            nickname: nickname
+          }
+    })
+
+    if (findNickname) {  // 중복된 닉네임 오류
+      const err = new Error('중복된 닉네임입니다.');
+      err.status = 409;
+      throw err;
+    }
+  
         const hashedPassword = await bcrypt.hash(password,10);
 
         const user = await prisma.users.create({
