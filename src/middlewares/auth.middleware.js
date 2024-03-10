@@ -17,9 +17,9 @@ export default async function(req, res, next) {
 
         if(!user) throw new Error('토큰 사용자가 존재하지 않습니다.')
 
-        if(user.userType !== 'OWNER') throw new Error('사장님만 사용할 수 있는 API입니다.');
 
         req.user = user;
+        req.userType = user.userType;
         next();
 
     } catch (error) {

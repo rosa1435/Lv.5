@@ -8,6 +8,12 @@ const router = express.Router();
 router.post('/categories', authMiddleware, async (req, res, next) => {
     const { name } = req.body
     try {
+        if (req.userType !== 'OWNER') {
+            const err = new Error('사장님만 ㄱㄱ');
+            err.status = 404;
+            throw err;
+        
+        }
         if (!name) {
             const err = new Error('데이터 형식이 올바르지 않습니다.');
             err.status = 400;
