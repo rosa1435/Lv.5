@@ -9,10 +9,9 @@ router.post('/categories', authMiddleware, async (req, res, next) => {
     const { name } = req.body
     try {
         if (req.userType !== 'OWNER') {
-            const err = new Error('사장님만 ㄱㄱrr');
-            err.status = 404;
+            const err = new Error('사장님만 사용할 수 있는 API입니다.');
+            err.status = 401;
             throw err;
-        
         }
         if (!name) {
             const err = new Error('데이터 형식이 올바르지 않습니다.');
@@ -63,6 +62,11 @@ router.patch('/categories/:categoryId', authMiddleware, async (req, res, next) =
     const { name, order } = req.body
     const { categoryId } = req.params;
     try {
+        if (req.userType !== 'OWNER') {
+            const err = new Error('사장님만 사용할 수 있는 API입니다.');
+            err.status = 401;
+            throw err;
+        }
 
         if (!name || !order) {
             const err = new Error('데이터 형식이 올바르지 않습니다.');
@@ -100,9 +104,14 @@ router.patch('/categories/:categoryId', authMiddleware, async (req, res, next) =
 });
 
 // 카테고리 삭제 API
-router.delete('/categories/:categoryId', async (req, res, next) => {
+router.delete('/categories/:categoryId', authMiddleware, async (req, res, next) => {
     const { categoryId } = req.params;
     try {
+        if (req.userType !== 'OWNER') {
+            const err = new Error('사장님만 사용할 수 있는 API입니다.');
+            err.status = 401;
+            throw err;
+        }
 
         const findId = await prisma.categories.findUnique({
             where: {

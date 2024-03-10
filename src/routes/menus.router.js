@@ -11,6 +11,12 @@ router.post('/categories/:categoryId/menus', authMiddleware, async (req, res, ne
     const { categoryId } = req.params;
 
     try {
+        if (req.userType !== 'OWNER') {
+            const err = new Error('사장님만 사용할 수 있는 API입니다.');
+            err.status = 401;
+            throw err;
+        }
+
         // 필수 필드 확인
         if (!name || !description || !image || price === undefined || !categoryId) {
             const err = new Error('데이터 형식이 올바르지 않습니다.');
@@ -155,6 +161,12 @@ router.get('/categories/:categoryId/menus/:menuId', async (req, res, next) => {
 /**메뉴 수정 API **/
 router.patch('/categories/:categoryId/menus/:menuId', authMiddleware, async (req, res, next) => {
         try {
+            if (req.userType !== 'OWNER') {
+                const err = new Error('사장님만 사용할 수 있는 API입니다.');
+                err.status = 401;
+                throw err;
+            }
+
             const { name, description, price, order, status } = req.body;
             const categoryId = parseInt(req.params.categoryId);
             const menuId = parseInt(req.params.menuId);
@@ -217,6 +229,12 @@ router.patch('/categories/:categoryId/menus/:menuId', authMiddleware, async (req
 /**메뉴 삭제 API **/
 router.delete('/categories/:categoryId/menus/:menuId', authMiddleware,async (req, res, next) => {
         try {
+            if (req.userType !== 'OWNER') {
+                const err = new Error('사장님만 사용할 수 있는 API입니다.');
+                err.status = 401;
+                throw err;
+            }
+
             const categoryId = parseInt(req.params.categoryId);
             const menuId = parseInt(req.params.menuId);
 
