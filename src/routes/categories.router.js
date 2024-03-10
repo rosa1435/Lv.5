@@ -9,7 +9,7 @@ router.post('/categories', authMiddleware, async (req, res, next) => {
     const { name } = req.body
     try {
         if (req.userType !== 'OWNER') {
-            const err = new Error('사장님만 ㄱㄱ');
+            const err = new Error('사장님만 ㄱㄱrr');
             err.status = 404;
             throw err;
         
