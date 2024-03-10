@@ -55,3 +55,19 @@ enum Status{
   SOLD_OUT
 }
 
+model Orders {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  menuId    Int
+  quantity  Int
+  orderType OrderType @default(PENDING)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  total     Int
+}
+
+enum OrderType {
+  PENDING
+  ACCEPTED
+  CANCEL
+}
