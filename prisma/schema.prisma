@@ -31,6 +31,7 @@ model Categories {
   id     Int    @id @default(autoincrement()) @map("id")
   name   String @map("name")
   order  Int    @map("order")
+  deletedAt   DateTime? @map("deletedAt")
 
   menus Menus[]
   
@@ -47,6 +48,7 @@ model Menus{
   status      Status     @default(FOR_SALE) @map("status")
   categoryId  Int        @map("categoryId")
   category    Categories @relation(fields: [categoryId], references: [id])
+  deletedAt   DateTime? @map("deletedAt")
   @@map("Menus")
 }
 
