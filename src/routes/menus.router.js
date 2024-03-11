@@ -107,7 +107,7 @@ router.get('/categories/:categoryId/menus', async (req, res, next) => {
         }
     });
 
-/** 특정 메뉴 조회 API **/
+/** 메뉴 상세 조회 API **/
 router.get('/categories/:categoryId/menus/:menuId', async (req, res, next) => {
         try {
             const categoryId = parseInt(req.params.categoryId);
@@ -125,7 +125,11 @@ router.get('/categories/:categoryId/menus/:menuId', async (req, res, next) => {
 
             // 해당 메뉴가 존재하지 않음
             const existingMenu = await prisma.menus.findUnique({
-                where: { id: menuId }
+                where: {
+                    id: menuId,
+                    // 소프트 삭제된 메뉴는 조회에서 제외하기 위한 조건 추가
+                    deletedAt: null // deletedAt이 null인 메뉴만 포함
+                }
             });
             if (!existingMenu) {
                 const err = new Error('존재하지 않는 메뉴 입니다.');
@@ -136,11 +140,13 @@ router.get('/categories/:categoryId/menus/:menuId', async (req, res, next) => {
             const showmenu = await prisma.menus.findMany({
                 where: {
                     categoryId: categoryId,
-                    id: menuId
+                    id: menuId,
+                    deletedAt: null
                 },
                 select: {
                     id: true,
                     name: true,
+                    description: true,
                     image: true,
                     price: true,
                     order: true,
@@ -198,6 +204,12 @@ router.patch('/categories/:categoryId/menus/:menuId', authMiddleware, async (req
                 throw err;
             }
 
+            if (existingMenu.deletedAt) {
+                const err = new Error('삭제된 메뉴는 수정할 수 없습니다.');
+                err.status = 403; // Forbidden action on a soft-deleted record
+                throw err;
+            }
+            
             // 메뉴 가격이 0보다 작은 경우 확인
             if (price < 0) {
                 const err = new Error('메뉴 가격은 0보다 작을 수 없습니다.');
@@ -264,13 +276,18 @@ router.delete('/categories/:categoryId/menus/:menuId', authMiddleware,async (req
                 err.status = 404;
                 throw err;
             }
-
-            await prisma.menus.delete({
+            const updateMenu = await prisma.menus.updateMany({
                 where: {
-                    id: menuId
-                }
+                    AND: [
+                        { id: parseInt(menuId) },
+                        { categoryId: parseInt(categoryId) },
+                        { deletedAt: null } // 소프트 삭제되지 않은 메뉴에만 적용
+                    ]
+                },
+                data: {
+                    deletedAt: new Date(), // 현재 시간으로 삭제 시각 설정
+                },
             });
-
             return res.status(200).json({ message: '메뉴를 삭제하였습니다.' });
         } catch (err) {
             next(err)

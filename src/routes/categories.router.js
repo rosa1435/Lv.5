@@ -45,7 +45,13 @@ router.post('/categories', authMiddleware, async (req, res, next) => {
 
 // 카테고리 목록 조회 API
 router.get('/categories', async (req, res) => {
-    const categorylist = await prisma.categories.findMany({
+    const categoryList = await prisma.categories.findMany({
+        where: {
+            deletedAt: null,
+        },
+        orderBy: {
+            order: 'asc',
+        },
         select: {
             id: true,
             name: true,
@@ -53,8 +59,7 @@ router.get('/categories', async (req, res) => {
         }
     });
 
-    return res.status(200).json({ data: categorylist });
-
+    return res.status(200).json({ data: categoryList });
 });
 
 // 카테고리 정보 변경 API
@@ -81,7 +86,8 @@ router.patch('/categories/:categoryId', authMiddleware, async (req, res, next) =
         });
 
 
-        if (!findId) {
+
+        if (!findId || findId.deletedAt) {
             const err = new Error('존재하지 않는 카테고리 입니다.');
             err.status = 404;
             throw err;
@@ -125,12 +131,25 @@ router.delete('/categories/:categoryId', authMiddleware, async (req, res, next) 
             throw err;
         }
 
-
-        await prisma.categories.delete({
+        await prisma.categories.update({
             where: {
-                id: +categoryId
-            }
+                id: +categoryId,
+            },
+            data: {
+                deletedAt: new Date(), // 현재 시각으로 설정
+            },
         });
+
+        // 연관된 모든 메뉴 소프트 삭제
+        await prisma.menus.updateMany({
+            where: {
+                categoryId: +categoryId,
+            },
+            data: {
+                deletedAt: new Date(), // 현재 시각으로 설정
+            },
+        });
+        
         return res.status(200).json({ message: '카테고리 정보를 삭제하였습니다.' })
 
     } catch (err) {
